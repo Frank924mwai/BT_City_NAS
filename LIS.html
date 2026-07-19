@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blantyre City Street Addressing Portal</title>
+    
+    <!-- Vendor Stylesheets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
+    
+    <!-- Custom Separated Application CSS -->
+    <link rel="stylesheet" href="LIS_style.css"/>    
+
+    <!-- Vendor JavaScript Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
+    <script src="https://unpkg.com/esri-leaflet/dist/esri-leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+    <!-- Local GeoJSON and Core Logic Scripts -->
+    <script defer src="BTBoundary.js"></script>
+    <script defer src="BTPostcodes.js"></script>
+    <script defer src="BTRoads.js"></script>
+    <script defer src="BTNas.js"></script>
+    <script defer src="LIS_code.js"></script>
+</head>
+<body>
+
+    <!-- Lock Screen -->
+    <div id="lock-screen">
+        <div id="lock-box">
+            <h2>Enter Password</h2>
+            <input id="password-input" type="password" placeholder="Password">
+            <button id="unlock-btn" onclick="checkPassword()">Unlock</button>
+            <div id="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Application -->
+    <div id="main-content">
+        
+        <!-- Top Banner Section -->
+        <div id="top-section">
+            <div id="header-bar">
+                <div class="logo-container">
+                    <img src="BT CITY.jpg" alt="BCC Logo" class="portal-logo">
+                    <img src="MACRA.png" alt="MACRA Logo" class="portal-logo">
+                </div>
+                <div id="header">NATIONAL ADDRESSING SYSTEM PORTAL | BLANTYRE CITY</div> 
+                <div id="Attribution">Created by Geoscientist Frank Mwai Chingoka</div> 
+            </div>
+            
+            <!-- Global Map Layer Controls & Global Search Field -->
+            <div class="search-container">
+                <select id="layer-select" aria-label="Select Map Layer">
+                    <option value="nas">Street Addresses</option>
+                    <option value="road">Roads</option>
+                    <option value="postcode">Postcodes</option>
+                </select>
+                <select id="attribute-select" aria-label="Select Attribute"></select>
+                <input type="text" id="plot-search-input" list="plot-list" placeholder="Search or Coords" aria-label="Search Input">
+                <button id="search-button">Search</button>
+                <datalist id="plot-list"></datalist>
+            </div>
+        </div>
+
+        <!-- App Workspace Frame Container -->
+        <div id="content-wrapper">
+            
+            <!-- Interactive Menu Action Trigger -->
+            <button id="nav-toggle" onclick="toggleNav()" title="Menu">☰</button>
+
+            <!-- Slide-Out Sidebar Navigation Panel Drawer -->
+            <div id="sidebar" class="closed">
+                
+                <!-- Active Subview Component 1: Central Operations Navigation -->
+                <div id="main-menu-view" class="sidebar-view active">
+                    <h2>Menu</h2>
+                    <ul class="menu-list">
+                        <li onclick="switchSidebarView('route-planner-view')">Route Planner</li>
+                        <li onclick="switchSidebarView('about-view')">About</li>
+                    </ul>
+                </div>
+
+                <!-- Active Subview Component 2: Network Directives Engine -->
+                <div id="route-planner-view" class="sidebar-view">
+                    <button class="back-btn" onclick="switchSidebarView('main-menu-view')">Back</button>
+                    <h2>Route Planner</h2>
+                    
+                    <div class="routing-action-block">
+                        <button id="set-start-btn" class="route-btn">Set Start (Click Map)</button>
+                        <button id="set-end-btn" class="route-btn">Set End (Click Map)</button>
+                        <button id="calculate-route-btn" class="route-btn primary">Calculate Route</button>
+                        <button id="clear-route-btn" class="route-btn">Clear Route</button>
+                    </div>
+                    <p class="helper-text">
+                        Click the above buttons,then click on the map to place points.
+                    </p>
+                </div>
+
+                <!-- Active Subview Component 3: Administrative Documentation Metadata -->
+                <div id="about-view" class="sidebar-view">
+                    <button class="back-btn" onclick="switchSidebarView('main-menu-view')">Back</button>
+                    <h2>About</h2>
+                    
+                    <p>The <a href="https://macra.mw/national-addressing-project/" target="_blank">National Addressing System (NAS)</a>, spearheaded by the Government of Malawi through the Malawi Communications Regulatory Authority (MACRA) as a multi-stakeholder initiative, seeks to assign every property in the country a unique physical address through standardised addressing protocols, physical infrastructure, and an integrated Geographical Information Systems (GIS) database. Serving as a practical municipal implementation of this national framework, the Blantyre City Street Addressing Portal operationalises the NAS by integrating national addressing standards with local spatial data and planning processes.</p>
+                    <p>Designed primarily as a public awareness and access tool, the portal enables residents of Blantyre City to easily locate and retrieve official street addresses. At the same time, it provides the Council with a powerful platform for conducting efficient digital property searches, supporting planning and development control, and facilitating informed decision-making through spatial data. By integrating public accessibility with municipal planning functions, the portal bridges the gap between the National Addressing System and day-to-day local government operations, significantly strengthening land administration, urban planning, and service delivery across Blantyre City.</p>
+                    <p>At the core of the portal is a powerful search functionality that enables users to quickly locate street addresses using plot numbers, geographic coordinates (latitude and longitude), and Universal Transverse Mercator (UTM) coordinates. This feature addresses the longstanding challenge of property identification, eliminating the need for residents and stakeholders to physically visit the Council's offices to obtain address information. It also strengthens institutional continuity by reducing reliance on individual staff knowledge and manual records. In addition, the portal incorporates an intelligent route-planning tool that enables users to generate the shortest route between two locations or street addresses. The tool calculates the travel distance, provides an estimated journey time, showcases the route summary, and displays the optimal route on the map, making it easier for residents, visitors, service providers, and emergency responders to navigate the city efficiently.</p>
+                    <p>The interactive mapping interface allows users to toggle vector layers and switch between basemaps, including Google Satellite, Hybrid, and OpenStreetMap, to achieve optimal terrain visualisation. Clicking on a parcel generates a pop-up displaying key attributes such as house number, street name, area name, district, and postcode. In the application, an individual can also pick a coordinate, measure distance as well as area using the measurement tool. The application also indicates the location of an individual relative to the map. While area and perimeter values provided are approximate, users are advised to consult the relevant offices (BCC, MHC, and Ministry of Lands) for official and precise measurements.</p>
+                    <p>The street address database is continuously being updated and improved. As the system evolves, it is intended to further strengthen digital transformation efforts within the City of Blantyre.</p>
+                    
+					<hr class="section-divider">
+                    
+                    <h3 class="contact-heading">Creator's Contact</h3>
+                    <p class="contact-details"><strong>Geoscientist:</strong> Frank Mwai Chingoka<br>
+                    <strong>Personal Email:</strong> mwaichingoka@gmail.com<br>
+					<strong>Office Email:</strong> mwaichingoka@bccmw.com<br>
+                    <strong>Phone:</strong> +265 881 792 396</p>
+                </div>
+
+            </div>
+
+            <!-- Mapping Spatial Context Canvas Frame -->
+            <div id="mapdiv">
+                <button id="full-extent-btn" title="Zoom to full extent" aria-label="Zoom to full extent"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Operational Control Flow Execution Blocks -->
+    <script>
+        document.getElementById("password-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkPassword();
+            }
+        });
+
+        async function hash(text) {
+            const msgUint8 = new TextEncoder().encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function checkPassword() {
+            const errorMsg = document.getElementById("error-msg");
+            errorMsg.innerText = "";
+            try {
+                const correctHash = "b0dba05676f7bc1487a55129f8b973dc7e19885864ce72709bcfb27c37dace43";
+                const input = document.getElementById("password-input").value.trim();
+
+                if (!input) { errorMsg.innerText = "Please enter a password."; return; }
+
+                const inputHash = await hash(input);
+
+                if (inputHash === correctHash) {
+                    document.getElementById("lock-screen").style.display = "none";
+                    document.getElementById("main-content").style.display = "block";
+                    
+                    if (typeof initialize === "function") { initialize(); }
+
+                    setTimeout(() => {
+                        if (typeof map !== 'undefined') { map.invalidateSize(); }
+                    }, 300);
+                } else {
+                    errorMsg.innerText = "Incorrect password.";
+                }
+            } catch (err) {
+                errorMsg.innerText = "Error: " + err.message;
+            }
+        }
+
+        function toggleNav() {
+            const sidebar = document.getElementById("sidebar");
+            const navBtn = document.getElementById("nav-toggle");
+			const wrapper = document.getElementById("content-wrapper");
+
+            sidebar.classList.toggle("open");
+            sidebar.classList.toggle("closed");
+            navBtn.classList.toggle("open");
+			wrapper.classList.toggle("sidebar-open");
+
+            if (sidebar.classList.contains("open")) {
+                navBtn.innerHTML = "✕";
+				navBtn.title = "Close";
+                switchSidebarView('main-menu-view'); 
+            } else {
+                navBtn.innerHTML = "☰";
+				navBtn.title = "Menu";
+            }
+
+            setTimeout(() => {
+                if (typeof map !== 'undefined') { map.invalidateSize(); }
+            }, 350);
+        }
+
+        function switchSidebarView(viewId) {
+            const views = document.querySelectorAll('.sidebar-view');
+            views.forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(viewId).classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+/* ==========================================================================
+   1. RESET, BASE ARCHITECTURE & GLOBAL DEFINITIONS
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background-color: white;
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   2. GATEWAY AUTHENTICATION SHIELD (LOCK SCREEN)
+   ========================================================================== */
+#lock-screen {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    height: 100vh; 
+    background-color: #f0f4f9; 
+    position: relative; 
+    z-index: 99999;
+}
+
+#lock-box {
+    text-align: center; 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+    width: 300px;
+}
+
+#password-input {
+    padding: 12px; 
+    width: 100%; 
+    box-sizing: border-box; 
+    margin-bottom: 15px;
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    font-size: 16px; 
+    outline: none; 
+    transition: 0.2s ease;
+}
+
+#password-input:focus { 
+    border-color: #4169e1; 
+    box-shadow: 0 0 6px rgba(30,144,255,0.5); 
+}
+
+#unlock-btn {
+    padding: 12px 20px; 
+    background-color: #4169e1; 
+    color: white;
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    width: 100%; 
+    font-size: 16px; 
+    transition: 0.2s ease;
+}
+
+#unlock-btn:hover { 
+    background-color: #0d6cd1; 
+}
+
+#error-msg { 
+    color: #d93025; 
+    margin-top: 10px; 
+    font-size: 14px; 
+}
+
+/* Hidden container state controlled seamlessly via application logic */
+#main-content {
+    display: none;
+}
+
+/* ==========================================================================
+   3. PERSISTENT APPLICATION NAVBAR TOP CONTAINER
+   ========================================================================== */
+#top-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    justify-content: space-between;
+    width: 100%;
+    background-color: white;
+    z-index: 8000; 
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0px;
+    display: flex;
+    align-items: center;
+    height: 70px; 
+}
+
+#header-bar {
+    position: relative;
+    display: flex;
+    z-index: 6000;
+    align-items: baseline;
+    gap: 15px;
+    display: grid !important;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 3px 16px;
+    height: 52px;                  
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    grid-column: 1 / 2;
+    grid-row: 1 / 3;
+    align-self: center;
+}
+
+.portal-logo {
+    width: auto;
+    object-fit: contain;
+    height: 52px !important;
+    margin: 0 !important;
+}
+
+#header {
+    font-size: 16.5px;
+    font-weight: bold;
+    color: #4169e1;
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    white-space: nowrap;
+    width: auto;
+    z-index: 3000;
+    gap: 12px;
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    align-self: start !important;   
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.05;
+}
+
+#Attribution {
+    text-align: left;
+    font-style: italic;
+    color: #333;
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    align-self: end !important;     
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.73em;
+    line-height: 1.25;
+}
+
+/* ==========================================================================
+   4. DATA FILTER OPTIONS & INPUT ELEMENT MATRIX
+   ========================================================================== */
+.search-container {
+    position: relative;
+    display: flex;
+    gap: 6px;
+    width: auto;
+    margin-right: 5px;
+    margin-left: auto;
+    align-items: center;
+    overflow: visible !important;
+    clip: auto !important; 
+}
+
+#layer-select, #attribute-select {
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    background-color: white;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#layer-select:focus, #attribute-select:focus { 
+    border-color: #4169e1; 
+    box-shadow: 0 0 6px rgba(30,144,255,0.5); 
+}
+
+#plot-search-input {
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: 0.2s ease;
+}
+
+#plot-search-input:focus { 
+    border-color: #4169e1; 
+    box-shadow: 0 0 6px rgba(30,144,255,0.5); 
+}
+
+#search-button {
+    background-color: #4169e1;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+#search-button:hover { 
+    background-color: #0d6cd1; 
+}
+
+/* ==========================================================================
+   5. WORKSPACE HUB VIEWPORT LAYER & CORE SPATIAL MATRIX MAP
+   ========================================================================== */
+#content-wrapper {
+    position: relative;
+    display: flex;
+    margin-top: 70px; /* Offset directly accommodates height boundary of #top-section layout */
+    height: calc(100vh - 70px);
+    width: 100%;
+    overflow: hidden;
+}
+
+#mapdiv {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    height: 100%;
+    width: 100%;
+    border-top: thin solid black;
+    z-index: 1;
+}
+
+/* ==========================================================================
+   6. FLOATING UI COMPONENTS & BUTTON STRUCTURAL TRANSITIONS
+   ========================================================================== */
+#nav-toggle, #full-extent-btn,
+.leaflet-control-zoom a, .leaflet-control-locate a {
+    width: 36px !important; 
+    height: 36px !important; 
+    line-height: 34px !important; 
+    padding: 0 !important;
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important;
+    background-color: #ffffff !important; 
+    color: #333333 !important; 
+    border: 1px solid #ccc !important;
+    border-radius: 8px !important; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+    font-family: Arial, sans-serif !important; 
+    font-size: 18px !important; 
+    cursor: pointer;
+    text-decoration: none !important; 
+    transition: background-color 0.2s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#nav-toggle:hover, #full-extent-btn:hover,
+.leaflet-control-zoom a:hover, .leaflet-control-locate a:hover {
+    background-color: #f4f4f4 !important; 
+    color: #000000 !important;
+}
+
+/* Floating Action Menu Core Coordinates (Desktop default rules) */
+#nav-toggle {
+    position: fixed !important;
+    top: 80px !important;
+    left: 14px !important;
+    z-index: 10005 !important;
+}
+
+/* Dynamic Shift Action: Synchronized perfectly with structural sidebar container dimension boundaries */
+#nav-toggle.open {
+    left: 364px !important; 
+}
+
+#full-extent-btn {
+    position: fixed !important; 
+    top: 126px !important; 
+    left: 14px !important;
+    z-index: 10000 !important;
+}
+
+#full-extent-btn::after {
+    content: "" !important; 
+    position: absolute !important; 
+    left: 50% !important; 
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important; 
+    width: 16px !important; 
+    height: 16px !important;
+    background-color: #000000 !important; 
+    border-radius: 50% !important; 
+    pointer-events: none !important;
+}
+
+/* ==========================================================================
+   7. SIDEBAR NAVIGATION MODULAR CORE PANELS
+   ========================================================================== */
+#sidebar {
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 350px;
+    height: 100%;
+    background-color: #f0f4f9; /* Smooth modern off-white background profile matching material specs */
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+}
+
+#sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-view {
+    display: none;
+    padding: 20px; 
+    height: 100%; 
+    box-sizing: border-box; 
+    overflow-y: auto;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.sidebar-view.active { 
+    display: block; 
+}
+
+@keyframes slideIn { 
+    from { opacity: 0; transform: translateX(10px); } 
+    to { opacity: 1; transform: translateX(0); } 
+}
+
+/* Navigation List Controls Layout */
+.menu-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+
+.menu-list li {
+    padding: 15px 20px; 
+    margin-bottom: 8px; 
+    background: transparent; 
+    border-radius: 24px;
+    cursor: pointer; 
+    font-weight: 500; 
+    color: #1f1f1f; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px;
+    transition: background 0.2s;
+}
+
+.menu-list li:hover { 
+    background: #e1e5ea; 
+}
+
+/* View Headings & Content Structural Framework elements */
+.sidebar-view h2 { 
+    margin-top: 0; 
+    font-size: 15px; 
+    color: #1f1f1f; 
+    margin-bottom: 20px;
+}
+
+.sidebar-view p { 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: #333; 
+    text-align: justify; 
+    margin-bottom: 15px; 
+}
+
+.back-btn {
+    background: none; 
+    border: none; 
+    color: #0b57d0; 
+    cursor: pointer;
+    font-size: 14px; 
+    padding: 0 0 15px 0; 
+    font-weight: 600;
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+    margin-bottom: 10px;
+}
+
+.back-btn:hover { 
+    text-decoration: underline; 
+}
+
+/* Route Control Button Layout Elements inside View Container */
+.routing-action-block {
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+}
+
+.route-btn {
+    padding: 10px; 
+    border-radius: 8px; 
+    border: 1px solid #ccc; 
+    background: white; 
+    cursor: pointer; 
+    font-size: 13px; 
+    text-align: left; 
+    transition: 0.2s;
+}
+
+.route-btn:hover { 
+    background: #f4f4f4; 
+}
+
+.route-btn.primary { 
+    background: #0b57d0; 
+    color: white; 
+    border: none; 
+}
+
+.route-btn.primary:hover { 
+    background: #0842a0; 
+}
+
+.helper-text {
+    font-size: 12px; 
+    color: #666; 
+    margin-top: 15px;
+}
+
+.section-divider {
+    border: 0; 
+    border-top: 1px solid #ddd; 
+    margin: 20px 0;
+}
+
+.contact-heading {
+    font-size: 16px; 
+    color: #1f1f1f; 
+    margin-bottom: 5px;
+}
+
+.contact-details {
+    margin-top: 0; 
+    line-height: 1.4;
+}
+
+/* ==========================================================================
+   8. COMPACT INTEGRATION FOR MAP PLUGINS & LEAFLET SYSTEM ENGINE CONTROLS
+   ========================================================================== */
+.leaflet-control-locate, .leaflet-control-locate.leaflet-bar, .leaflet-control-locate.leaflet-control {
+    position: fixed !important; 
+    top: 172px !important; 
+    left: 14px !important; 
+    margin: 0 !important; 
+    z-index: 8500 !important;
+    background: none !important; 
+    background-color: transparent !important; 
+    border: none !important; 
+    box-shadow: none !important;
+}
+
+.leaflet-control-locate a { 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important; 
+}
+
+.leaflet-control-locate a span.fa-location-arrow, 
+.leaflet-control-locate .leaflet-control-locate-location-arrow { 
+    transform: rotate(-45deg); 
+}
+
+.leaflet-control-zoom, .leaflet-control-zoom.leaflet-bar {
+    position: fixed !important; 
+    left: 14px !important; 
+    bottom: 20px !important; 
+    margin: 0 !important; 
+    padding: 0 !important;
+    background: none !important; 
+    background-color: transparent !important; 
+    border: none !important; 
+    box-shadow: none !important;
+    display: flex !important; 
+    flex-direction: column !important; 
+    gap: 5px !important; 
+    z-index: 10000 !important;
+}
+
+.leaflet-control-attribution {
+    float: right !important; 
+    text-align: right !important; 
+    white-space: nowrap !important; 
+    font-size: 8px !important;
+    margin-bottom: 5px !important; 
+    margin-right: 0px !important; 
+    padding: 3px 9px !important;
+    background-color: rgba(255,255,255,0.92) !important; 
+    border-radius: 4px !important; 
+    box-shadow: 0 1px 5px rgba(0,0,0,0.12) !important;
+    line-height: 1.2;
+}
+
+.awesomplete { 
+    position: relative !important; 
+    z-index: 8500 !important; 
+}
+
+.awesomplete ul {
+    position: absolute !important; 
+    top: 100% !important; 
+    left: 0 !important; 
+    right: auto !important;
+    min-width: 220px !important; 
+    max-width: 90vw !important; 
+    background: white !important; 
+    border: 1px solid #ccc !important;
+    border-radius: 6px !important; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important; 
+    z-index: 9999 !important;
+    margin: 4px 0 0 0 !important; 
+    padding: 0 !important; 
+    list-style: none !important; 
+    max-height: 40vh !important; 
+    overflow-y: auto !important;
+}
+
+.awesomplete ul[hidden], .awesomplete ul:empty { 
+    display: none !important; 
+    pointer-events: none !important; 
+}
+
+.property-label {
+    background: rgba(255, 255, 255, 0.7); 
+    border: 1px solid #333; 
+    border-radius: 4px; 
+    padding: 2px 5px;
+    font-weight: bold; 
+    color: #000; 
+    font-size: 11px; 
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    text-shadow: 1px 1px 3px white, -1px -1px 3px white !important;
+}
+
+.property-label::before { 
+    display: none; 
+}
+
+/* ==========================================================================
+   9. MOBILE RESPONSIVE ADAPTATION STYLESHEET (BREAKPOINT INTERFACE MATRIX)
+   ========================================================================== */
+@media(max-width:768px) {
+    #top-section {
+        display: grid !important; 
+        grid-template-columns: 68px 1fr !important; 
+        grid-template-rows: auto auto !important;   
+        gap: 4px 15px !important; 
+        height: 110px !important; 
+        padding: 8px 10px !important; 
+        z-index: 10020 !important;
+    }
+    
+    #header {
+        grid-column: 2 / 3 !important; 
+        grid-row: 1 / 2 !important; 
+        align-self: start !important;      
+        font-size: 14px !important; 
+        text-align: left !important; 
+        line-height: 1.1 !important;
+    }
+    
+    #Attribution {
+        grid-column: 2 / 3 !important; 
+        grid-row: 2 / 3 !important; 
+        align-self: end !important;      
+        font-size: 10px !important; 
+        line-height: 1.25 !important;
+    }
+    
+    .logo-container { 
+        grid-column: 1 / 2 !important; 
+        grid-row: 1 / 3 !important; 
+    }
+    
+    .portal-logo { 
+        height: 60px !important; 
+    }
+    
+    #header-bar { 
+        display: contents !important; 
+    }
+    
+    #content-wrapper { 
+        margin-top: 110px !important; 
+        height: calc(100vh - 110px) !important; 
+    }
+    
+    #sidebar { 
+        width: 85% !important; 
+        z-index: 9000 !important; 
+    }
+    
+    .search-container {
+        grid-column: 1 / 3 !important; 
+        grid-row: 2 / 3 !important; 
+        display: flex !important; 
+        width: 100% !important;
+        margin-top: 4px !important; 
+        justify-content: flex-end !important; 
+        flex-wrap: nowrap !important; 
+        gap: 4px !important;
+    }
+    
+    #plot-search-input { 
+        flex: 1 1 auto !important; 
+        min-width: 80px !important; 
+        order: 1 !important; 
+    }
+    
+    #search-button { 
+        order: 2 !important; 
+    }
+    
+    #layer-select { 
+        width: 90px !important; 
+        order: 3 !important; 
+        flex: 0 0 auto !important; 
+    }
+    
+    #attribute-select { 
+        width: 90px !important; 
+        order: 4 !important; 
+        flex: 0 0 auto !important; 
+    }
+
+    /* Mobile Layer Trigger & Navigation Action Layout Coordinates */
+    #nav-toggle { 
+        top: 120px !important; 
+        left: 10px !important; 
+        z-index: 10010 !important; 
+    }
+    
+    #nav-toggle.open { 
+        left: calc(85% - 45px) !important; 
+    }
+    
+    #full-extent-btn { 
+        top: 166px !important; 
+        left: 10px !important; 
+    }
+    
+    .leaflet-control-locate, 
+    .leaflet-control-locate.leaflet-bar, 
+    .leaflet-control-locate.leaflet-control { 
+        top: 212px !important; 
+        left: 10px !important; 
+    }
+    
+    .awesomplete { 
+        display: flex !important; 
+        flex: 1 1 auto !important; 
+        width: 100% !important; 
+    }
+    
+    .awesomplete > input { 
+        width: 100% !important; 
+    }
+    
+    .awesomplete ul { 
+        right: 0 !important; 
+        left: auto !important; 
+        transform: translateX(0) !important; 
+    }
+}
+/* Resize the map area when sidebar is open */
+#content-wrapper.sidebar-open #mapdiv {
+    margin-left: 350px; /* Pushes the map to the right */
+    width: calc(100% - 350px); /* Shrinks width to prevent overflow */
+}
+
+/* Move the UI buttons when sidebar is open */
+#content-wrapper.sidebar-open #full-extent-btn,
+#content-wrapper.sidebar-open .leaflet-control-zoom,
+#content-wrapper.sidebar-open .leaflet-control-locate {
+    left: 364px !important; /* 350px (sidebar) + 14px (original offset) */
+}
