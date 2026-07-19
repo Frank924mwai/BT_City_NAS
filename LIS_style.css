@@ -628,7 +628,10 @@ html, body {
         width: 100% !important;
         justify-content: space-between !important; 
         gap: 6px !important;
-        margin: 0 !important;
+        margin-top: 2px !important;
+        margin-bottom: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
         position: relative !important;
         z-index: 10030 !important;
     }
@@ -692,10 +695,19 @@ html, body {
         left: 10px !important; 
     }
 
-    /* Target measurement tool/top-right controls to ensure they stay visible */
+   /* Target measurement tool and layer controls to ensure they stay FIXED */
     .leaflet-top.leaflet-right {
-        margin-top: 10px !important;
+        position: fixed !important;
+        top: 165px !important; /* Aligns exactly with the top left navigation button */
+        right: 10px !important; /* Locks it 10px from the right edge of the screen */
+        margin-top: 0 !important;
         z-index: 9999 !important;
+    }
+    
+    /* Ensure the individual controls inside don't float around */
+    .leaflet-top.leaflet-right .leaflet-control {
+        margin-right: 0 !important;
+        margin-bottom: 10px !important; /* Adds neat spacing between layer and measure icons */
     }
     
     .awesomplete ul { 
