@@ -21,8 +21,8 @@ const CONFIG = {
         road: { color: "#999", weight: 3, fillOpacity: 0.08 },
         highlight: { color: "#ffff00", weight: 5, stroke: true },
         route: {
-            color: "#00b5d0",
-            weight: 6,
+            color: "#3458EB",
+            weight: 8,
             opacity: 0.85,
             lineCap: "round",
             lineJoin: "round",
